@@ -1,3 +1,4 @@
+#imports
 from PIL import Image
 import numpy as np
 import json
@@ -5,9 +6,7 @@ import os
 import random
 import matplotlib.pyplot as plt
 
-example_dir = '/Users/seancondon/Desktop/065_final/dataset-medium/images/2ef3a4994a_0CCD105428INSPIRE-ortho.tif'
-processed_dir = '/Users/seancondon/Desktop/065_final/ingested_images/'
-STRIDE_LEN = 256
+#### MAIN IMAGE PROCESSING FUNCTIONS ####
 
 def im_to_array(indir):
     '''
@@ -37,7 +36,7 @@ def ingest_array(ar):
     Ignore such chunks that contain a majority black pixels.
 
     :param ar: Large 3-channel np array to ingest.
-    :return: TODO
+    :return: to_exp: a np array of all image tiles
     '''
     #declare stride length and get image dimensions
     h, w, channels = ar.shape
@@ -78,7 +77,7 @@ def handle_meta_image(file_dir):
     then chunking it.
 
     :param file_dir: directory for tif image to ingest
-    :return: TODO
+    :return: None, saves processed array as .npy file in processed_dir
     '''
     print('Ingesting %s...'%(file_dir.split('/')[-1]))
 
@@ -104,35 +103,58 @@ def handle_meta_image(file_dir):
 
     for i in range(out_array.shape[0]):
         tosave = out_array[i]
-        #tosave = np.divide(tosave, 255)
         filename = '%d.npy'%(i)
         np.save(file=os.path.join(outdir, filename), arr=tosave)
     print('Done Ingesting!')
     print('Output shape = '+str(out_array.shape))
 
+
+####  HELPER FUNCTIONS BELOW THIS LINE  ####
+
 def examine_output():
-    directory = '/Users/seancondon/Desktop/065_final/ingested_images/c644f91210_27E21B7F30OPENPIPELINE-ortho/'
+    '''
+    Helper function to examine a .npy file created from a .TIF image.
+
+    :return: None
+    '''
+
+    #specify the directory for a processed .TIF image
+    directory = './ingested_images/c644f91210_27E21B7F30OPENPIPELINE-ortho/'
     toShow = 0
     for f in os.listdir(directory):
-        #if f.endswith('.npy'):
+        #specify a filename to view
         if f == '191.npy':
             im_array = np.load(os.path.join(directory, f))
-            #im_array = np.multiply(im_array, 255)
             print(im_array)
             im = Image.fromarray(im_array)
             im.show()
             toShow -=1
-            if toShow < 0: break
+            if toShow < 0: #show only one image
+                break
 
 def process_all(meta_dir):
+    '''
+    Processes all .TIF images in meta_dir to tiles and saves them as .npy arrays.
 
+    :param meta_dir: The directory path containing the .TIF images to process.
+    :return: None
+    '''
+
+    #loop through all .TIF images in meta_dir
     for f in os.listdir(meta_dir):
         if f.endswith('.tif'):
             handle_meta_image(os.path.join(meta_dir, f))
 
 
 def tile_plot():
-    dir = '/Users/seancondon/Desktop/065_final/ingested_images/'
+    '''
+    Generate a plot of 25 tiles for debugging purposes.
+
+    :return: None, outputs plot .png as ./tiles.png
+    '''
+
+    #get a list of all subdirectories in ingested_images
+    dir = './ingested_images/'
     toPlot = 25
     images = []
     meta = os.listdir(dir)
@@ -141,6 +163,8 @@ def tile_plot():
         if f != '.DS_Store':
             new_meta.append(f)
     meta = new_meta
+
+    #loop through possible subdirectories to randomly select tiles to plot
     for i in range(toPlot):
         meta_choice = random.choice(meta)
         im_choice = '.DS_Store'
@@ -155,20 +179,32 @@ def tile_plot():
     #show all images in image list
     fig = plt.figure(figsize=(6, 6))  # width, height in inches
     plt.tight_layout()
-    #fig.subplots_adjust(hspace=0.1)
     for i in range(toPlot):
         sub = fig.add_subplot(5, 5, i + 1)
         sub.get_yaxis().set_visible(False)
         sub.get_xaxis().set_visible(False)
         sub.imshow(images[i], interpolation='nearest')
     fig.suptitle('25 Example Tiles', fontsize=16)
-    plt.savefig('/Users/seancondon/Desktop/065_final/tiles.png',dpi=300)
+    plt.savefig('./tiles.png',dpi=300)
 
+if __name__ == '__main__':
 
+    #specify the stride length for tiles
+    STRIDE_LEN = 256
 
-tile_plot()
-#process_all('/Users/seancondon/Desktop/065_final/dataset-medium/images/')
-#examine_output()
+    #specify the directory containing .TIF images to process (TIF_dir)
+    #and the directory where processed images should be saved (processed_dir)
+    TIF_dir = './TIF_files/'
+    processed_dir = './ingested_images/'
+
+    #process all images in TIF_dir
+    print('Processing images in %s'%(TIF_dir))
+    process_all(TIF_dir)
+
+    #OPTIONAL, plot some processed tiles
+    if True:
+        tile_plot()
+
 
 
 

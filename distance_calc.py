@@ -1,3 +1,4 @@
+#imports
 import numpy as np
 import operator
 import json
@@ -10,10 +11,16 @@ import matplotlib.pyplot as plt
 import math
 
 
-
 def save_global_dictionary():
+    '''
+    Aggregates all .json files in ./fingerprints to turn them into one global json dictionary
+
+    :return: None, output saved as .json file
+    '''
+
+    #loop through all .json files in ./fingerprints
     global_dict = {}
-    global_dir = '/Users/seancondon/Desktop/065_final/fingerprints/'
+    global_dir = './fingerprints/'
     for f in os.listdir(global_dir):
         if f.endswith('.json'):
             fname = f.split('_')[0]
@@ -73,7 +80,6 @@ def create_candidate_dict():
         concat_uid_with_tile_label(fp_folder_filepath,short_name,uid)
 
 
-#create_candidate_dict()
 def distance_score_between_fingerprint(query_fingerpint, candidate_fingerprint):
     dist = np.linalg.norm(query_fingerpint - candidate_fingerprint)
     return dist
@@ -108,13 +114,10 @@ def matplot_images(images, title = False):
             if title: plt.title('query')
         else:
             if title: plt.title('%d' % (i))
-    #plt.tight_layout()
     plt.show()
     return f, axarr
 
-def manage_query(q = None):
-    #QUERY = '1d4fbe33f3_25'
-    K = 11
+def manage_query(q = None, K = 11):
 
     #load in global dict
     print('Loading global dict...')
@@ -125,11 +128,12 @@ def manage_query(q = None):
     t1 = time.time()
     print('Dict load took %.4f seconds'%(t1-t0))
     keylist = list(global_dict.keys())
+
+    #select query image, either using q if provided in function call, or picking a random query
     if q == None:
         QUERY = random.choice(keylist)
     else:
         QUERY = q
-    print(QUERY)
 
     #get k nearest tiles
     print('Finding nearest tiles...')
@@ -138,14 +142,14 @@ def manage_query(q = None):
     t3 = time.time()
     print('Nearest tiles took %.4f seconds'%(t3-t2))
 
+    #PLOTTING FUNCTIONALITY TO SEE RESULTS
     #imshow query image
-    image_dir = '/Users/seancondon/Desktop/065_final/ingested_images/'
+    image_dir = './ingested_images/'
     query_image_path = os.path.join(image_dir, '%s_*'%(QUERY.split('_')[0]))
     query_image_path = os.path.join(query_image_path, '%s.npy'%(QUERY.split('_')[1]))
     resolved_q_path = glob.glob(query_image_path)
     q_im_arr = np.load(resolved_q_path[0])
     q_im = Image.fromarray(q_im_arr)
-    #q_im.show()
     images = [q_im]
 
     #imshow nearest_tiles
@@ -156,7 +160,6 @@ def manage_query(q = None):
         im_arr = np.load(resolved_im_path[0])
         im = Image.fromarray(im_arr)
         if resolved_im_path != resolved_q_path:
-           # im.show()
             images.append(im)
 
     f, axarr = matplot_images(images)
