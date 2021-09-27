@@ -13,13 +13,5 @@ Takes the directories of preprocessed tiles and converts them into information-d
 #### distance_calc.py
 Calculates the distance between a query fingerprint and all other fingerprints in the database, and plots the results. 
 
-## How to Run
 
-### Downloading Dataset
-
-### Tiling Images
-
-### Generating Fingerprints
-
-### Running Query Search
 
